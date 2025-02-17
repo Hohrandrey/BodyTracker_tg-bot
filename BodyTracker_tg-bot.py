@@ -1,41 +1,42 @@
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'
 
 # Обработчик команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Создаем клавиатуру с кнопками
+    # Создаем inline-клавиатуру
     keyboard = [
-        ["Индекс массы тела"],
-        ["Статистика похудения"],
-        ["Расчёт калорий на день"],
-        ["Контроль питания"],
-        ["Напоминания попить воды"]
+        [InlineKeyboardButton("Расчёт индекса массы тела", callback_data='rach')],
+        [InlineKeyboardButton("Статистика похудения", callback_data='stat')],
+        [InlineKeyboardButton("Расчёт калорий на день", callback_data='kkal')],
+        [InlineKeyboardButton("Контроль питания", callback_data='control')],
+        [InlineKeyboardButton("Напоминания попить воды", callback_data='drink')]
     ]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text("Привет! Я ваш бот. Как я могу помочь?", reply_markup=reply_markup)
+    reply_markup = InlineKeyboardMarkup(keyboard)
 
-# Обработчик текстовых сообщений
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-    if text == "Индекс массы тела":
-        await update.message.reply_text("Вы выбрали: Индекс массы тела")
-    elif text == "Статистика похудения":
-        await update.message.reply_text("Вы выбрали: Статистика похудения")
-    elif text == "Расчёт калорий на день":
-        await update.message.reply_text("Вы выбрали: Расчёт калорий на день")
-    elif text == "Контроль питания":
-        await update.message.reply_text("Вы выбрали: Контроль питания")
-    elif text == "Напоминания попить воды":
-        await update.message.reply_text("Вы выбрали: Напоминания попить воды")
-    else:
-        await update.message.reply_text(f"Вы написали: {text}")
+    # Отправляем сообщение с кнопками
+    await update.message.reply_text(
+        "Привет! Как я могу помочь?\nВыберите один из вариантов",
+        reply_markup=reply_markup
+    )
 
-# Обработчик ошибок
-async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print(f"Ошибка: {context.error}")
+# Обработчик нажатий на кнопки
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()  # Ответим на callback, чтобы убрать "часики" на кнопке
+
+    if query.data == 'rach':
+        await query.edit_message_text(text="Вы выбрали: Рассчитать индекс массы тела")
+    elif query.data == 'stat':
+        await query.edit_message_text(text="Вы выбрали: Посмотреть статистику похудения")
+    elif query.data == 'kkal':
+        await query.edit_message_text(text="Вы выбрали: Рассчитать калории на день")
+    elif query.data == 'control':
+        await query.edit_message_text(text="Вы выбрали: Контроль питания")
+    elif query.data == 'drink':#Изменить логику 100%
+        await query.edit_message_text(text="Вы выбрали: Попыть")
 
 # Основная функция
 if __name__ == '__main__':
@@ -45,11 +46,8 @@ if __name__ == '__main__':
     # Регистрация обработчиков команд
     app.add_handler(CommandHandler("start", start))
 
-    # Регистрация обработчиков текстовых сообщений
-    app.add_handler(MessageHandler(filters.TEXT, handle_message))
-
-    # Регистрация обработчика ошибок
-    app.add_error_handler(error)
+    # Регистрация обработчика нажатий на кнопки
+    app.add_handler(CallbackQueryHandler(button_handler))
 
     # Запуск бота
     print("Бот работает...")

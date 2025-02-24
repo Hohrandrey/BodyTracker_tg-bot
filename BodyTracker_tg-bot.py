@@ -3,7 +3,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Mess
 from bmi_calculator import handle_weight, handle_height
 from water_reminder import (
     show_reminders_menu, toggle_reminders, add_reminder, handle_reminder_time,
-    delete_reminder, handle_delete_reminder
+    delete_reminder, handle_delete_reminder, back_to_main_menu, back_to_reminders_menu
 )
 
 # Токен вашего бота
@@ -20,10 +20,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(
-        "Привет! Как я могу помочь?\nВыберите один из вариантов:",
-        reply_markup=reply_markup
-    )
+    # Сохраняем chat_id для уведомлений
+    if update.message:
+        context.user_data['chat_id'] = update.message.chat_id
+    elif update.callback_query:
+        context.user_data['chat_id'] = update.callback_query.message.chat_id
+
+    # Проверяем, откуда пришел запрос (из команды или callback)
+    if update.message:
+        await update.message.reply_text(
+            "Привет! Как я могу помочь?\nВыберите один из вариантов:",
+            reply_markup=reply_markup
+        )
+    elif update.callback_query:
+        await update.callback_query.message.reply_text(
+            "Привет! Как я могу помочь?\nВыберите один из вариантов:",
+            reply_markup=reply_markup
+        )
 
 # Обработчик нажатий на кнопки
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -50,6 +63,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await delete_reminder(update, context)
     elif query.data.startswith('delete_'):
         await handle_delete_reminder(update, context)
+    elif query.data == 'back_to_main':
+        await back_to_main_menu(update, context, start)  # Возврат в главное меню
+    elif query.data == 'back_to_reminders':
+        await back_to_reminders_menu(update, context)  # Возврат в меню напоминаний
 
 # Обработка сообщений от пользователя
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -1,7 +1,10 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
-from bmi_calculator import handle_weight, handle_height  # Импортируем функции из bmi_calculator.py
-from water_reminder import set_water_reminder, handle_interval  # Импортируем функции из water_reminder.py
+from bmi_calculator import handle_weight, handle_height
+from water_reminder import (
+    show_reminders_menu, toggle_reminders, add_reminder, handle_reminder_time,
+    delete_reminder, handle_delete_reminder
+)
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'
@@ -13,7 +16,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("Статистика похудения", callback_data='stat')],
         [InlineKeyboardButton("Рассчитать калории на день", callback_data='kkal')],
         [InlineKeyboardButton("Контроль питания", callback_data='control')],
-        [InlineKeyboardButton("Напоминания попить воды", callback_data='drink')]
+        [InlineKeyboardButton("Напоминания попить воды", callback_data='reminders')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -37,18 +40,26 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(text="Вы выбрали: Рассчитать калории на день")
     elif query.data == 'control':
         await query.edit_message_text(text="Вы выбрали: Контроль питания")
-    elif query.data == 'drink':
-        await set_water_reminder(update, context)
+    elif query.data == 'reminders':
+        await show_reminders_menu(update, context)
+    elif query.data == 'toggle_reminders':
+        await toggle_reminders(update, context)
+    elif query.data == 'add_reminder':
+        await add_reminder(update, context)
+    elif query.data == 'delete_reminder':
+        await delete_reminder(update, context)
+    elif query.data.startswith('delete_'):
+        await handle_delete_reminder(update, context)
 
 # Обработка сообщений от пользователя
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get('state', None)
     if state == 'waiting_for_weight':
-        await handle_weight(update, context)  # Используем функцию из bmi_calculator.py
+        await handle_weight(update, context)
     elif state == 'waiting_for_height':
-        await handle_height(update, context)  # Используем функцию из bmi_calculator.py
-    elif state == 'waiting_for_interval':
-        await handle_interval(update, context)  # Используем функцию из water_reminder.py
+        await handle_height(update, context)
+    elif state == 'waiting_for_reminder_time':
+        await handle_reminder_time(update, context)
 
 # Основная функция
 if __name__ == '__main__':

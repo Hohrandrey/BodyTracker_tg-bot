@@ -5,6 +5,9 @@ from water_reminder import (
     show_reminders_menu, toggle_reminders, add_reminder, handle_reminder_time,
     delete_reminder, handle_delete_reminder, back_to_main_menu, back_to_reminders_menu
 )
+from weight_statistics import (
+    show_weight_statistics_menu, enter_weight, handle_weight_stat, back_to_main_menu_from_stat
+)
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'
@@ -48,7 +51,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Введите ваш вес в килограммах (например, 70):")
         context.user_data['state'] = 'waiting_for_weight'
     elif query.data == 'stat':
-        await query.edit_message_text(text="Вы выбрали: Посмотреть статистику похудения")
+        await show_weight_statistics_menu(update, context)
+    elif query.data == 'enter_weight':
+        await enter_weight(update, context)
     elif query.data == 'kkal':
         await query.edit_message_text(text="Вы выбрали: Рассчитать калории на день")
     elif query.data == 'control':
@@ -64,9 +69,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data.startswith('delete_'):
         await handle_delete_reminder(update, context)
     elif query.data == 'back_to_main':
-        await back_to_main_menu(update, context, start)  # Возврат в главное меню
+        await back_to_main_menu_from_stat(update, context, start)  # Передаем start как аргумент
     elif query.data == 'back_to_reminders':
-        await back_to_reminders_menu(update, context)  # Возврат в меню напоминаний
+        await back_to_reminders_menu(update, context)
 
 # Обработка сообщений от пользователя
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -74,9 +79,11 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if state == 'waiting_for_weight':
         await handle_weight(update, context)
     elif state == 'waiting_for_height':
-        await handle_height(update, context)
+        await handle_height(update, context, start)  # Передаем start как аргумент
     elif state == 'waiting_for_reminder_time':
         await handle_reminder_time(update, context)
+    elif state == 'waiting_for_weight_stat':
+        await handle_weight_stat(update, context, start)  # Передаем start как аргумент
 
 # Основная функция
 if __name__ == '__main__':

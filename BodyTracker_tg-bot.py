@@ -8,7 +8,9 @@ from water_reminder import (
 from weight_statistics import (
     show_weight_statistics_menu, enter_weight, handle_weight_stat, back_to_main_menu_from_stat
 )
-from CaloriesCalculator import handle_calories_start
+from CaloriesCalculator import (
+    handle_calories_start, handle_gender, handle_age, handle_weight, handle_height, handle_activity
+)
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'
@@ -73,6 +75,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await back_to_main_menu_from_stat(update, context, start)  # Передаем start как аргумент
     elif query.data == 'back_to_reminders':
         await back_to_reminders_menu(update, context)
+    elif query.data in ['gender_m', 'gender_f']:
+        await handle_gender(update, context)
+    elif query.data.startswith('activity_'):
+        await handle_activity(update, context)
 
 # Обработка сообщений от пользователя
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -85,6 +91,12 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_reminder_time(update, context)
     elif state == 'waiting_for_weight_stat':
         await handle_weight_stat(update, context, start)  # Передаем start как аргумент
+    elif state == 'waiting_for_age':
+        await handle_age(update, context)
+    elif state == 'waiting_for_calories_weight':
+        await handle_weight(update, context)
+    elif state == 'waiting_for_calories_height':
+        await handle_height(update, context)
 
 # Основная функция
 if __name__ == '__main__':

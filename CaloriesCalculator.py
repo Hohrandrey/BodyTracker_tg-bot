@@ -91,9 +91,16 @@ async def handle_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
         activity_level=activity_level
     )
 
+    # Создаем клавиатуру с кнопкой для возврата в главное меню
+    keyboard = [
+        [InlineKeyboardButton("Вернуться в главное меню", callback_data='back_to_main')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     await query.edit_message_text(
         text=f"Ваша суточная норма калорий: {calories:.0f} ккал\n"
-             "Для возврата в меню нажмите /start"
+             "Для возврата в меню нажмите кнопку ниже:",
+        reply_markup=reply_markup
     )
     context.user_data.clear()
 

@@ -11,6 +11,10 @@ from weight_statistics import (
 from CaloriesCalculator import (
     handle_calories_start, handle_gender, handle_age, handle_weight, handle_height, handle_activity
 )
+from meal_button import (
+    get_meal_button, meal_button_handler, meal_choice_handler, save_meal, 
+get_meal_button_handler, get_meal_choice_handler
+)
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'
@@ -60,8 +64,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'kkal':
         await handle_calories_start(update, context)
     elif query.data == 'control':
-        await query.edit_message_text(text="Вы выбрали: Контроль питания")
-    elif query.data == 'reminders':
+        await meal_button(update, context)
+    elif query.data == 'add_meal':
         await show_reminders_menu(update, context)
     elif query.data == 'toggle_reminders':
         await toggle_reminders(update, context)
@@ -109,3 +113,4 @@ if __name__ == '__main__':
 
     print("Бот работает...")
     app.run_polling()
+

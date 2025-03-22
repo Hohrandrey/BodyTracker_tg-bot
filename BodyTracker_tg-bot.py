@@ -9,7 +9,7 @@ from weight_statistics import (
     show_weight_statistics_menu, enter_weight, handle_weight_stat, back_to_main_menu_from_stat
 )
 from CaloriesCalculator import (
-    handle_calories_start, handle_gender, handle_age, handle_weight, handle_height, handle_activity
+    handle_calories_start, handle_gender, handle_age, handle_weigh, handle_heigh, handle_activity
 )
 from meal_button import (
     get_meal_button, meal_button_handler, meal_choice_handler, save_meal, 
@@ -64,7 +64,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'kkal':
         await handle_calories_start(update, context)
     elif query.data == 'control':
-        await meal_button(update, context)
+        await meal_button_handler(update, context)
     elif query.data == 'add_meal':
         await show_reminders_menu(update, context)
     elif query.data == 'toggle_reminders':
@@ -98,9 +98,9 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif state == 'waiting_for_age':
         await handle_age(update, context)
     elif state == 'waiting_for_calories_weight':
-        await handle_weight(update, context)
+        await handle_weigh(update, context)
     elif state == 'waiting_for_calories_height':
-        await handle_height(update, context)
+        await handle_heigh(update, context)
 
 # Основная функция
 if __name__ == '__main__':

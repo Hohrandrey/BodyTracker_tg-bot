@@ -1,7 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-
 async def handle_calories_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("Мужской", callback_data='gender_m')],
@@ -13,7 +12,7 @@ async def handle_calories_start(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup=reply_markup
     )
     context.user_data['state'] = 'waiting_for_gender'
-
+    print("State set to waiting_for_gender")
 
 async def handle_gender(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -21,10 +20,11 @@ async def handle_gender(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     gender = 'м' if query.data == 'gender_m' else 'ж'
     context.user_data['gender'] = gender
+    print(f"Gender set to {gender}")
 
     await query.edit_message_text(text="Введите ваш возраст:")
     context.user_data['state'] = 'waiting_for_age'
-
+    print("State set to waiting_for_age")
 
 async def handle_age(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -34,11 +34,11 @@ async def handle_age(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['age'] = age
         await update.message.reply_text("Введите ваш вес в кг:")
         context.user_data['state'] = 'waiting_for_calories_weight'
+        print("State set to waiting_for_calories_weight")
     except:
         await update.message.reply_text("Некорректный возраст. Введите число от 1 до 120:")
 
-
-async def handle_weight(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_weigh(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         weight = float(update.message.text.replace(',', '.'))
         if weight <= 0:
@@ -46,11 +46,11 @@ async def handle_weight(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['weight'] = weight
         await update.message.reply_text("Введите ваш рост в см:")
         context.user_data['state'] = 'waiting_for_calories_height'
+        print("State set to waiting_for_calories_height")
     except:
         await update.message.reply_text("Некорректный вес. Введите положительное число:")
 
-
-async def handle_height(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_heigh(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         height = float(update.message.text.replace(',', '.'))
         if height <= 0:
@@ -71,9 +71,9 @@ async def handle_height(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup
         )
         context.user_data['state'] = 'waiting_for_activity'
+        print("State set to waiting_for_activity")
     except:
         await update.message.reply_text("Некорректный рост. Введите положительное число:")
-
 
 async def handle_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -83,6 +83,8 @@ async def handle_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['activity'] = activity_level
 
     user_data = context.user_data
+    print(f"User data before calculation: {user_data}")
+
     calories = calculate_calories(
         gender=user_data['gender'],
         weight=user_data['weight'],
@@ -103,7 +105,7 @@ async def handle_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
     context.user_data.clear()
-
+    print("User data cleared")
 
 def calculate_calories(gender: str, weight: float, height: float, age: int, activity_level: int) -> float:
     # Формула Миффлина-Сан Жеора

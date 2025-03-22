@@ -1,14 +1,12 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackQueryHandler, ContextTypes, MessageHandler, filters
 import sqlite3
-
 
 def get_meal_button():
     keyboard = [[InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")]]
     return InlineKeyboardMarkup(keyboard)
 
-
-def meal_button_handler(update, context):
+async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
     date = query.message.date.strftime("%Y-%m-%d")
@@ -24,18 +22,16 @@ def meal_button_handler(update, context):
                 [InlineKeyboardButton("Ужин", callback_data="dinner"),
                  InlineKeyboardButton("Перекус", callback_data="snack")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    query.message.reply_text("Выберите приём пищи:", reply_markup=reply_markup)
-    query.answer()
+    await query.message.reply_text("Выберите приём пищи:", reply_markup=reply_markup)
+    await query.answer()
 
-
-def meal_choice_handler(update, context):
+async def meal_choice_handler(update, context):
     query = update.callback_query
     context.user_data['meal'] = query.data
-    query.message.reply_text(f"Вы выбрали {query.data}. Теперь отправьте список продуктов, которые съели.")
-    query.answer()
+    await query.message.reply_text(f"Вы выбрали {query.data}. Теперь отправьте список продуктов, которые съели.")
+    await query.answer()
 
-
-def save_meal(update, context):
+async def save_meal(update, context):
     user_id = update.message.from_user.id
     date = update.message.date.strftime("%Y-%m-%d")
     meal = context.user_data.get('meal')
@@ -46,14 +42,10 @@ def save_meal(update, context):
         c = conn.cursor()
         c.execute("INSERT INTO meals (user_id, date, meal, food) VALUES (?, ?, ?, ?)", (user_id, date, meal, food))
         conn.commit()
-        update.message.reply_text("Приём пищи сохранён!")
+        await update.message.reply_text("Приём пищи сохранён!")
+        # Возврат в главное меню
+        start_function = context.user_data.get('start_function')
+        if start_function:
+            await start_function(update, context)
     else:
-        update.message.reply_text("Сначала выберите приём пищи.")
-
-
-def get_meal_button_handler():
-    return CallbackQueryHandler(meal_button_handler, pattern='^add_meal$')
-
-
-def get_meal_choice_handler():
-    return CallbackQueryHandler(meal_choice_handler, pattern='^(breakfast|lunch|dinner|snack)$')
+        await update.message.reply_text("Сначала выберите приём пищи.")

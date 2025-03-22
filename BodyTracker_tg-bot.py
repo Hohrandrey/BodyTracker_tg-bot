@@ -12,8 +12,7 @@ from CaloriesCalculator import (
     handle_calories_start, handle_gender, handle_age, handle_weigh, handle_heigh, handle_activity
 )
 from meal_button import (
-    get_meal_button, meal_button_handler, meal_choice_handler, save_meal, 
-get_meal_button_handler, get_meal_choice_handler
+    meal_button_handler, save_meal, meal_choice_handler
 )
 
 # Токен вашего бота
@@ -64,10 +63,15 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'kkal':
         await handle_calories_start(update, context)
     elif query.data == 'control':
+        # Переход к контролю питания
+        context.user_data['start_function'] = start
         await meal_button_handler(update, context)
+    elif query.data in ['breakfast', 'lunch', 'dinner', 'snack']:
+        # Обработка выбора приёма пищи
+        await meal_choice_handler(update, context)
     elif query.data == 'add_meal':
         await show_reminders_menu(update, context)
-    elif query.data == 'toggle_reminders':
+    elif query.data == 'reminders':
         await toggle_reminders(update, context)
     elif query.data == 'add_reminder':
         await add_reminder(update, context)
@@ -101,6 +105,9 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_weigh(update, context)
     elif state == 'waiting_for_calories_height':
         await handle_heigh(update, context)
+    elif 'meal' in context.user_data:
+        # Если пользователь выбрал приём пищи, сохраняем еду
+        await save_meal(update, context)
 
 # Основная функция
 if __name__ == '__main__':

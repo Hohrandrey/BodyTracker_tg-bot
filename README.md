@@ -12,8 +12,9 @@ BodyTracker_tg-bot - это Telegram-бот, предназначенный дл
 
 ## Зависимости
 Проект использует следующие библиотеки Python:
-- `python-telegram-bot` - для взаимодействия с Telegram API.
-- `python-dotenv` - для работы с переменными окружения.
+- `python-telegram-bot` - для работы с Telegram Bot API
+- `matplotlib` - для построения графиков и визуализации данных. 
+- `setuptools` - для управления пакетами Python, которая используется для сборки и установки пакетов.
 
 Полный список зависимостей указан в файле `requirements.txt`.
 

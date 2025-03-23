@@ -1,0 +1,398 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ru" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>water_reminder &mdash; документация BodyTracker_tg-bot 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=6ff560e8"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=cd1d70c9"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Алфавитный указатель" href="../genindex.html" />
+    <link rel="search" title="Поиск" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BodyTracker_tg-bot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Поиск в документации" aria-label="Поиск в документации" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Меню навигации">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Меню навигации для мобильных устройств" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BodyTracker_tg-bot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Навигация по страницам">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Код модуля</a></li>
+      <li class="breadcrumb-item active">water_reminder</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Исходный код water_reminder</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">telegram</span><span class="w"> </span><span class="kn">import</span> <span class="n">Update</span><span class="p">,</span> <span class="n">InlineKeyboardButton</span><span class="p">,</span> <span class="n">InlineKeyboardMarkup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">telegram.ext</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContextTypes</span><span class="p">,</span> <span class="n">Application</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="c1"># Состояния для управления напоминаниями</span>
+<span class="n">REMINDERS_ON</span> <span class="o">=</span> <span class="s2">&quot;reminders_on&quot;</span>
+<span class="n">REMINDERS_OFF</span> <span class="o">=</span> <span class="s2">&quot;reminders_off&quot;</span>
+
+<div class="viewcode-block" id="show_reminders_menu">
+<a class="viewcode-back" href="../modules.html#water_reminder.show_reminders_menu">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">show_reminders_menu</span><span class="p">(</span><span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Отображает меню управления напоминаниями с кнопками включения/выключения, добавления, удаления и возврата.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция отправляет или редактирует сообщение с меню напоминаний.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Получаем текущее состояние напоминаний</span>
+    <span class="n">reminders_state</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reminders_state&#39;</span><span class="p">,</span> <span class="n">REMINDERS_OFF</span><span class="p">)</span>
+
+    <span class="c1"># Создаем inline-клавиатуру с кнопками</span>
+    <span class="n">keyboard</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">InlineKeyboardButton</span><span class="p">(</span>
+            <span class="s2">&quot;✅ Включить напоминания&quot;</span> <span class="k">if</span> <span class="n">reminders_state</span> <span class="o">==</span> <span class="n">REMINDERS_OFF</span> <span class="k">else</span> <span class="s2">&quot;❌ Выключить напоминания&quot;</span><span class="p">,</span>
+            <span class="n">callback_data</span><span class="o">=</span><span class="s1">&#39;toggle_reminders&#39;</span>
+        <span class="p">)],</span>
+        <span class="p">[</span><span class="n">InlineKeyboardButton</span><span class="p">(</span><span class="s2">&quot;➕ Добавить напоминание&quot;</span><span class="p">,</span> <span class="n">callback_data</span><span class="o">=</span><span class="s1">&#39;add_reminder&#39;</span><span class="p">)],</span>
+        <span class="p">[</span><span class="n">InlineKeyboardButton</span><span class="p">(</span><span class="s2">&quot;➖ Удалить напоминание&quot;</span><span class="p">,</span> <span class="n">callback_data</span><span class="o">=</span><span class="s1">&#39;delete_reminder&#39;</span><span class="p">)],</span>
+        <span class="p">[</span><span class="n">InlineKeyboardButton</span><span class="p">(</span><span class="s2">&quot;🔙 Назад&quot;</span><span class="p">,</span> <span class="n">callback_data</span><span class="o">=</span><span class="s1">&#39;back_to_main&#39;</span><span class="p">)]</span>
+    <span class="p">]</span>
+    <span class="n">reply_markup</span> <span class="o">=</span> <span class="n">InlineKeyboardMarkup</span><span class="p">(</span><span class="n">keyboard</span><span class="p">)</span>
+
+    <span class="c1"># Проверяем, откуда пришел запрос (из callback или message)</span>
+    <span class="k">if</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span><span class="o">.</span><span class="n">edit_message_text</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Управление напоминаниями:&quot;</span><span class="p">,</span>
+            <span class="n">reply_markup</span><span class="o">=</span><span class="n">reply_markup</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">update</span><span class="o">.</span><span class="n">message</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">update</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reply_text</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Управление напоминаниями:&quot;</span><span class="p">,</span>
+            <span class="n">reply_markup</span><span class="o">=</span><span class="n">reply_markup</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="toggle_reminders">
+<a class="viewcode-back" href="../modules.html#water_reminder.toggle_reminders">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">toggle_reminders</span><span class="p">(</span><span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Переключает состояние напоминаний (вкл/выкл) и запускает/останавливает задачу уведомлений.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция обновляет состояние и отображает меню напоминаний.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span>
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">answer</span><span class="p">()</span>
+
+    <span class="c1"># Получаем текущее состояние напоминаний</span>
+    <span class="n">reminders_state</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reminders_state&#39;</span><span class="p">,</span> <span class="n">REMINDERS_OFF</span><span class="p">)</span>
+
+    <span class="c1"># Меняем состояние</span>
+    <span class="k">if</span> <span class="n">reminders_state</span> <span class="o">==</span> <span class="n">REMINDERS_OFF</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminders_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">REMINDERS_ON</span>
+        <span class="k">await</span> <span class="n">start_reminder_task</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminders_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">REMINDERS_OFF</span>
+        <span class="k">await</span> <span class="n">stop_reminder_task</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+
+    <span class="c1"># Показываем обновленное меню</span>
+    <span class="k">await</span> <span class="n">show_reminders_menu</span><span class="p">(</span><span class="n">update</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_reminder">
+<a class="viewcode-back" href="../modules.html#water_reminder.add_reminder">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">add_reminder</span><span class="p">(</span><span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Запрашивает у пользователя время для нового напоминания.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция отправляет запрос на ввод времени и устанавливает состояние ожидания.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span>
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">answer</span><span class="p">()</span>
+
+    <span class="c1"># Запрашиваем время для нового напоминания</span>
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">edit_message_text</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Введите время для нового напоминания в формате ЧЧ:ММ (например, 09:30):&quot;</span><span class="p">)</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;waiting_for_reminder_time&#39;</span></div>
+
+
+<div class="viewcode-block" id="handle_reminder_time">
+<a class="viewcode-back" href="../modules.html#water_reminder.handle_reminder_time">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handle_reminder_time</span><span class="p">(</span><span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Обрабатывает введённое пользователем время для напоминания и сохраняет его.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция сохраняет напоминание и возвращает пользователя в меню.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: Если формат времени некорректен (обрабатывается внутри функции).</span>
+<span class="sd">        IndexError: Если строка времени не содержит разделителя &#39;:&#39; (обрабатывается внутри функции).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Парсим введенное время</span>
+        <span class="n">time_str</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">time_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">hours</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">hours</span> <span class="o">&gt;</span> <span class="mi">23</span> <span class="ow">or</span> <span class="n">minutes</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">minutes</span> <span class="o">&gt;</span> <span class="mi">59</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">update</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reply_text</span><span class="p">(</span><span class="s2">&quot;Некорректное время. Введите время в формате ЧЧ:ММ (например, 09:30).&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Сохраняем напоминание</span>
+        <span class="k">if</span> <span class="s1">&#39;reminders&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">:</span>
+            <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminders&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="p">(</span><span class="n">hours</span><span class="p">,</span> <span class="n">minutes</span><span class="p">))</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminders&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="k">await</span> <span class="n">update</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reply_text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Напоминание добавлено на </span><span class="si">{</span><span class="n">time_str</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">show_reminders_menu</span><span class="p">(</span><span class="n">update</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+        <span class="k">await</span> <span class="n">update</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reply_text</span><span class="p">(</span><span class="s2">&quot;Некорректный формат времени. Введите время в формате ЧЧ:ММ (например, 09:30).&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="delete_reminder">
+<a class="viewcode-back" href="../modules.html#water_reminder.delete_reminder">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">delete_reminder</span><span class="p">(</span><span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Отображает список напоминаний для выбора удаления или сообщение об их отсутствии.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция отправляет список напоминаний или сообщение об их отсутствии.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span>
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">answer</span><span class="p">()</span>
+
+    <span class="c1"># Проверяем, есть ли напоминания</span>
+    <span class="k">if</span> <span class="s1">&#39;reminders&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminders&#39;</span><span class="p">]:</span>
+        <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">reply_text</span><span class="p">(</span><span class="s2">&quot;Нет активных напоминаний.&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">show_reminders_menu</span><span class="p">(</span><span class="n">update</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Создаем клавиатуру для выбора напоминания для удаления</span>
+    <span class="n">keyboard</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="n">InlineKeyboardButton</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%H:%M&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">callback_data</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;delete_</span><span class="si">{</span><span class="n">t</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%H:%M&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminders&#39;</span><span class="p">]</span>
+    <span class="p">]</span>
+    <span class="n">keyboard</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">InlineKeyboardButton</span><span class="p">(</span><span class="s2">&quot;🔙 Назад&quot;</span><span class="p">,</span> <span class="n">callback_data</span><span class="o">=</span><span class="s1">&#39;back_to_reminders&#39;</span><span class="p">)])</span>
+    <span class="n">reply_markup</span> <span class="o">=</span> <span class="n">InlineKeyboardMarkup</span><span class="p">(</span><span class="n">keyboard</span><span class="p">)</span>
+
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">edit_message_text</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Выберите напоминание для удаления:&quot;</span><span class="p">,</span>
+        <span class="n">reply_markup</span><span class="o">=</span><span class="n">reply_markup</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handle_delete_reminder">
+<a class="viewcode-back" href="../modules.html#water_reminder.handle_delete_reminder">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handle_delete_reminder</span><span class="p">(</span><span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Удаляет выбранное пользователем напоминание.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция удаляет напоминание и возвращает пользователя в меню.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span>
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">answer</span><span class="p">()</span>
+
+    <span class="c1"># Извлекаем время из callback_data</span>
+    <span class="n">time_to_delete</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Удаляем напоминание</span>
+    <span class="n">reminders</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reminders&#39;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">reminders</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">reminders</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%H:%M&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">time_to_delete</span><span class="p">]</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">reminders</span>
+
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">edit_message_text</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Напоминание на </span><span class="si">{</span><span class="n">time_to_delete</span><span class="si">}</span><span class="s2"> удалено.&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">show_reminders_menu</span><span class="p">(</span><span class="n">update</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="back_to_main_menu">
+<a class="viewcode-back" href="../modules.html#water_reminder.back_to_main_menu">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">back_to_main_menu</span><span class="p">(</span><span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">,</span> <span class="n">start_func</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Возвращает пользователя в главное меню.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+<span class="sd">        start_func (callable): Функция для отображения главного меню.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция вызывает start_func для возврата в главное меню.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span>
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">answer</span><span class="p">()</span>
+
+    <span class="c1"># Сохраняем chat_id для уведомлений</span>
+    <span class="k">if</span> <span class="n">update</span><span class="o">.</span><span class="n">message</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;chat_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">chat_id</span>
+    <span class="k">elif</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;chat_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">chat_id</span>
+
+    <span class="c1"># Возвращаемся в главное меню</span>
+    <span class="k">await</span> <span class="n">start_func</span><span class="p">(</span><span class="n">update</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="back_to_reminders_menu">
+<a class="viewcode-back" href="../modules.html#water_reminder.back_to_reminders_menu">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">back_to_reminders_menu</span><span class="p">(</span><span class="n">update</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Возвращает пользователя в меню напоминаний.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция вызывает show_reminders_menu для возврата в меню напоминаний.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">callback_query</span>
+    <span class="k">await</span> <span class="n">query</span><span class="o">.</span><span class="n">answer</span><span class="p">()</span>
+
+    <span class="c1"># Возвращаемся в меню напоминаний</span>
+    <span class="k">await</span> <span class="n">show_reminders_menu</span><span class="p">(</span><span class="n">update</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="start_reminder_task">
+<a class="viewcode-back" href="../modules.html#water_reminder.start_reminder_task">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">start_reminder_task</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Запускает задачу для периодической проверки и отправки напоминаний.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция создаёт задачу asyncio для отправки уведомлений.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;reminder_task&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span> <span class="ow">or</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminder_task&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">done</span><span class="p">():</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminder_task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">send_reminders</span><span class="p">(</span><span class="n">context</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="stop_reminder_task">
+<a class="viewcode-back" href="../modules.html#water_reminder.stop_reminder_task">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stop_reminder_task</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Останавливает задачу уведомлений, если она запущена.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция отменяет задачу и удаляет её из контекста.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;reminder_task&#39;</span> <span class="ow">in</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">:</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminder_task&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;reminder_task&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="send_reminders">
+<a class="viewcode-back" href="../modules.html#water_reminder.send_reminders">[документация]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">send_reminders</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">ContextTypes</span><span class="o">.</span><span class="n">DEFAULT_TYPE</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Периодически проверяет время и отправляет напоминания пользователю.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None: Функция работает в бесконечном цикле, отправляя уведомления по расписанию.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">reminders</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reminders&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">for</span> <span class="n">reminder_time</span> <span class="ow">in</span> <span class="n">reminders</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">now</span><span class="o">.</span><span class="n">hour</span> <span class="o">==</span> <span class="n">reminder_time</span><span class="o">.</span><span class="n">hour</span> <span class="ow">and</span> <span class="n">now</span><span class="o">.</span><span class="n">minute</span> <span class="o">==</span> <span class="n">reminder_time</span><span class="o">.</span><span class="n">minute</span><span class="p">:</span>
+                <span class="k">await</span> <span class="n">context</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
+                    <span class="n">chat_id</span><span class="o">=</span><span class="n">context</span><span class="o">.</span><span class="n">user_data</span><span class="p">[</span><span class="s1">&#39;chat_id&#39;</span><span class="p">],</span>
+                    <span class="n">text</span><span class="o">=</span><span class="s2">&quot;⏰ Пора попить воды! 💧&quot;</span>
+                <span class="p">)</span>
+                <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># Ждем минуту, чтобы не отправлять уведомление несколько раз</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>  <span class="c1"># Проверяем время каждые 30 секунд</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Авторские права 2025, IKBO. </p>
+  </div>
+
+  Собрано при помощи <a href="https://www.sphinx-doc.org/">Sphinx</a> с использованием
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">темы,</a>
+    предоставленной <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

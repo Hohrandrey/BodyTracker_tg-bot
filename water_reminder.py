@@ -7,8 +7,16 @@ import asyncio
 REMINDERS_ON = "reminders_on"
 REMINDERS_OFF = "reminders_off"
 
-# Функция для отображения меню напоминаний
 async def show_reminders_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отображает меню управления напоминаниями с кнопками включения/выключения, добавления, удаления и возврата.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отправляет или редактирует сообщение с меню напоминаний.
+    """
     # Получаем текущее состояние напоминаний
     reminders_state = context.user_data.get('reminders_state', REMINDERS_OFF)
 
@@ -20,7 +28,7 @@ async def show_reminders_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         )],
         [InlineKeyboardButton("➕ Добавить напоминание", callback_data='add_reminder')],
         [InlineKeyboardButton("➖ Удалить напоминание", callback_data='delete_reminder')],
-        [InlineKeyboardButton("🔙 Назад", callback_data='back_to_main')]  # Возврат в главное меню
+        [InlineKeyboardButton("🔙 Назад", callback_data='back_to_main')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -36,8 +44,16 @@ async def show_reminders_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
             reply_markup=reply_markup
         )
 
-# Функция для включения/выключения напоминаний
 async def toggle_reminders(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Переключает состояние напоминаний (вкл/выкл) и запускает/останавливает задачу уведомлений.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция обновляет состояние и отображает меню напоминаний.
+    """
     query = update.callback_query
     await query.answer()
 
@@ -47,16 +63,24 @@ async def toggle_reminders(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Меняем состояние
     if reminders_state == REMINDERS_OFF:
         context.user_data['reminders_state'] = REMINDERS_ON
-        await start_reminder_task(context)  # Запускаем задачу для уведомлений
+        await start_reminder_task(context)
     else:
         context.user_data['reminders_state'] = REMINDERS_OFF
-        await stop_reminder_task(context)  # Останавливаем задачу для уведомлений
+        await stop_reminder_task(context)
 
     # Показываем обновленное меню
     await show_reminders_menu(update, context)
 
-# Функция для добавления напоминания
 async def add_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрашивает у пользователя время для нового напоминания.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отправляет запрос на ввод времени и устанавливает состояние ожидания.
+    """
     query = update.callback_query
     await query.answer()
 
@@ -64,8 +88,20 @@ async def add_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(text="Введите время для нового напоминания в формате ЧЧ:ММ (например, 09:30):")
     context.user_data['state'] = 'waiting_for_reminder_time'
 
-# Функция для обработки ввода времени напоминания
 async def handle_reminder_time(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает введённое пользователем время для напоминания и сохраняет его.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет напоминание и возвращает пользователя в меню.
+
+    Raises:
+        ValueError: Если формат времени некорректен (обрабатывается внутри функции).
+        IndexError: Если строка времени не содержит разделителя ':' (обрабатывается внутри функции).
+    """
     try:
         # Парсим введенное время
         time_str = update.message.text
@@ -78,23 +114,30 @@ async def handle_reminder_time(update: Update, context: ContextTypes.DEFAULT_TYP
         if 'reminders' not in context.user_data:
             context.user_data['reminders'] = []
         context.user_data['reminders'].append(time(hours, minutes))
-        context.user_data['reminders'].sort()  # Сортируем для удобства
+        context.user_data['reminders'].sort()
 
         await update.message.reply_text(f"Напоминание добавлено на {time_str}.")
-        await show_reminders_menu(update, context)  # Возвращаемся в меню напоминаний
+        await show_reminders_menu(update, context)
     except (ValueError, IndexError):
         await update.message.reply_text("Некорректный формат времени. Введите время в формате ЧЧ:ММ (например, 09:30).")
 
-# Функция для удаления напоминания
 async def delete_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отображает список напоминаний для выбора удаления или сообщение об их отсутствии.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отправляет список напоминаний или сообщение об их отсутствии.
+    """
     query = update.callback_query
     await query.answer()
 
     # Проверяем, есть ли напоминания
     if 'reminders' not in context.user_data or not context.user_data['reminders']:
-        # Отправляем отдельное сообщение, если напоминаний нет
         await query.message.reply_text("Нет активных напоминаний.")
-        await show_reminders_menu(update, context)  # Возвращаемся в меню напоминаний
+        await show_reminders_menu(update, context)
         return
 
     # Создаем клавиатуру для выбора напоминания для удаления
@@ -102,7 +145,7 @@ async def delete_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton(f"{t.strftime('%H:%M')}", callback_data=f"delete_{t.strftime('%H:%M')}")]
         for t in context.user_data['reminders']
     ]
-    keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data='back_to_reminders')])  # Возврат в меню напоминаний
+    keyboard.append([InlineKeyboardButton("🔙 Назад", callback_data='back_to_reminders')])
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await query.edit_message_text(
@@ -110,8 +153,16 @@ async def delete_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-# Функция для обработки удаления напоминания
 async def handle_delete_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Удаляет выбранное пользователем напоминание.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция удаляет напоминание и возвращает пользователя в меню.
+    """
     query = update.callback_query
     await query.answer()
 
@@ -124,10 +175,19 @@ async def handle_delete_reminder(update: Update, context: ContextTypes.DEFAULT_T
     context.user_data['reminders'] = reminders
 
     await query.edit_message_text(text=f"Напоминание на {time_to_delete} удалено.")
-    await show_reminders_menu(update, context)  # Возвращаемся в меню напоминаний
+    await show_reminders_menu(update, context)
 
-# Функция для возврата в главное меню
 async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, start_func):
+    """Возвращает пользователя в главное меню.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+        start_func (callable): Функция для отображения главного меню.
+
+    Returns:
+        None: Функция вызывает start_func для возврата в главное меню.
+    """
     query = update.callback_query
     await query.answer()
 
@@ -140,27 +200,56 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     # Возвращаемся в главное меню
     await start_func(update, context)
 
-# Функция для возврата в меню напоминаний
 async def back_to_reminders_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Возвращает пользователя в меню напоминаний.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция вызывает show_reminders_menu для возврата в меню напоминаний.
+    """
     query = update.callback_query
     await query.answer()
 
     # Возвращаемся в меню напоминаний
     await show_reminders_menu(update, context)
 
-# Функция для запуска задачи уведомлений
 async def start_reminder_task(context: ContextTypes.DEFAULT_TYPE):
+    """Запускает задачу для периодической проверки и отправки напоминаний.
+
+    Args:
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция создаёт задачу asyncio для отправки уведомлений.
+    """
     if 'reminder_task' not in context.user_data or context.user_data['reminder_task'].done():
         context.user_data['reminder_task'] = asyncio.create_task(send_reminders(context))
 
-# Функция для остановки задачи уведомлений
 async def stop_reminder_task(context: ContextTypes.DEFAULT_TYPE):
+    """Останавливает задачу уведомлений, если она запущена.
+
+    Args:
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отменяет задачу и удаляет её из контекста.
+    """
     if 'reminder_task' in context.user_data:
         context.user_data['reminder_task'].cancel()
         del context.user_data['reminder_task']
 
-# Функция для отправки уведомлений
 async def send_reminders(context: ContextTypes.DEFAULT_TYPE):
+    """Периодически проверяет время и отправляет напоминания пользователю.
+
+    Args:
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция работает в бесконечном цикле, отправляя уведомления по расписанию.
+    """
     while True:
         now = datetime.now().time()
         reminders = context.user_data.get('reminders', [])

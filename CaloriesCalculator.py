@@ -2,6 +2,15 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 async def handle_calories_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Начинает процесс расчёта калорий, запрашивая пол пользователя.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отправляет сообщение с выбором пола и устанавливает состояние ожидания.
+    """
     keyboard = [
         [InlineKeyboardButton("Мужской", callback_data='gender_m')],
         [InlineKeyboardButton("Женский", callback_data='gender_f')]
@@ -15,6 +24,15 @@ async def handle_calories_start(update: Update, context: ContextTypes.DEFAULT_TY
     print("State set to waiting_for_gender")
 
 async def handle_gender(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает выбор пола и запрашивает возраст пользователя.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет пол, отправляет запрос возраста и обновляет состояние.
+    """
     query = update.callback_query
     await query.answer()
 
@@ -27,6 +45,18 @@ async def handle_gender(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("State set to waiting_for_age")
 
 async def handle_age(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает введённый возраст и запрашивает вес пользователя.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет возраст, запрашивает вес или отправляет сообщение об ошибке.
+
+    Raises:
+        ValueError: Если возраст не является числом или выходит за пределы 1–120 (обрабатывается внутри).
+    """
     try:
         age = int(update.message.text)
         if not 1 <= age <= 120:
@@ -39,6 +69,18 @@ async def handle_age(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректный возраст. Введите число от 1 до 120:")
 
 async def handle_weigh(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает введённый вес и запрашивает рост пользователя.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет вес, запрашивает рост или отправляет сообщение об ошибке.
+
+    Raises:
+        ValueError: Если вес не является числом или не положительный (обрабатывается внутри).
+    """
     try:
         weight = float(update.message.text.replace(',', '.'))
         if weight <= 0:
@@ -51,6 +93,18 @@ async def handle_weigh(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректный вес. Введите положительное число:")
 
 async def handle_heigh(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает введённый рост и запрашивает уровень активности пользователя.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет рост, отправляет выбор активности или сообщение об ошибке.
+
+    Raises:
+        ValueError: Если рост не является числом или не положительный (обрабатывается внутри).
+    """
     try:
         height = float(update.message.text.replace(',', '.'))
         if height <= 0:
@@ -76,6 +130,15 @@ async def handle_heigh(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Некорректный рост. Введите положительное число:")
 
 async def handle_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает выбор уровня активности, рассчитывает калории и завершает процесс.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция рассчитывает калории, отправляет результат и очищает данные пользователя.
+    """
     query = update.callback_query
     await query.answer()
 
@@ -108,6 +171,22 @@ async def handle_activity(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("User data cleared")
 
 def calculate_calories(gender: str, weight: float, height: float, age: int, activity_level: int) -> float:
+    """Рассчитывает суточную норму калорий по формуле Миффлина-Сан Жеора с учётом активности.
+
+    Args:
+        gender (str): Пол пользователя ('м' для мужчин, 'ж' для женщин).
+        weight (float): Вес пользователя в килограммах.
+        height (float): Рост пользователя в сантиметрах.
+        age (int): Возраст пользователя в годах.
+        activity_level (int): Уровень активности (1–5).
+
+    Returns:
+        float: Рассчитанная суточная норма калорий в килокалориях.
+
+    Notes:
+        Используется базовый метаболический уровень (BMR) с множителями активности:
+        1: 1.2, 2: 1.375, 3: 1.55, 4: 1.725, 5: 1.9.
+    """
     # Формула Миффлина-Сан Жеора
     if gender == 'м':
         bmr = 10 * weight + 6.25 * height - 5 * age + 5

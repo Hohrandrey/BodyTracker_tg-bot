@@ -1,8 +1,19 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
-# Функция для обработки ввода веса
 async def handle_weight(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает введённый пользователем вес и запрашивает рост.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет вес, запрашивает рост или отправляет сообщение об ошибке.
+
+    Raises:
+        ValueError: Если введённое значение не является числом (обрабатывается внутри функции).
+    """
     try:
         # Пытаемся преобразовать ввод в число (дробное или целое)
         weight = float(update.message.text)
@@ -21,8 +32,23 @@ async def handle_weight(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Если ввод не является числом
         await update.message.reply_text("Пожалуйста, введите корректное число для веса (например, 70 или 70.5).")
 
-# Функция для обработки ввода роста и расчета ИМТ
 async def handle_height(update: Update, context: ContextTypes.DEFAULT_TYPE, start_function):
+    """Обрабатывает введённый рост, рассчитывает ИМТ и возвращает пользователя в главное меню.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+        start_function (callable): Функция для возврата в главное меню после расчёта.
+
+    Returns:
+        None: Функция рассчитывает ИМТ, отправляет результат или сообщение об ошибке, затем возвращает в меню.
+
+    Raises:
+        ValueError: Если введённое значение не является числом (обрабатывается внутри функции).
+
+    Notes:
+        Требует, чтобы вес был сохранён в context.user_data['weight'] до вызова.
+    """
     try:
         # Пытаемся преобразовать ввод в число (дробное или целое)
         height = float(update.message.text)

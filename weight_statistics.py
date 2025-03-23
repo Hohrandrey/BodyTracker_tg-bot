@@ -6,8 +6,16 @@ import io
 # Глобальный словарь для хранения данных о весе пользователей
 user_weight_data = {}
 
-# Обработчик кнопки "Статистика похудения"
 async def show_weight_statistics_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отображает меню статистики похудения с кнопками 'Ввести вес' и 'Назад'.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отправляет сообщение с меню в чат.
+    """
     keyboard = [
         [InlineKeyboardButton("Ввести вес", callback_data='enter_weight')],
         [InlineKeyboardButton("Назад", callback_data='back_to_main')]
@@ -19,13 +27,33 @@ async def show_weight_statistics_menu(update: Update, context: ContextTypes.DEFA
         reply_markup=reply_markup
     )
 
-# Обработчик кнопки "Ввести вес"
 async def enter_weight(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Запрашивает у пользователя ввод текущего веса.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отправляет сообщение с запросом веса и устанавливает состояние ожидания ввода.
+    """
     await update.callback_query.edit_message_text(text="Введите ваш текущий вес в килограммах (например, 70.5):")
     context.user_data['state'] = 'waiting_for_weight_stat'
 
-# Обработчик ввода веса
 async def handle_weight_stat(update: Update, context: ContextTypes.DEFAULT_TYPE, start_function):
+    """Обрабатывает введённый пользователем вес, сохраняет его и строит график.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+        start_function (callable): Функция для возврата в главное меню после обработки.
+
+    Returns:
+        None: Функция отправляет пользователю результат обработки и график, либо сообщение об ошибке.
+
+    Raises:
+        ValueError: Если введённое значение не является числом, обрабатывается внутри функции.
+    """
     try:
         # Пытаемся преобразовать ввод в число (дробное или целое)
         weight = float(update.message.text)
@@ -56,8 +84,15 @@ async def handle_weight_stat(update: Update, context: ContextTypes.DEFAULT_TYPE,
         # Если ввод не является числом
         await update.message.reply_text("Пожалуйста, введите корректное число для веса (например, 70 или 70.5).")
 
-# Функция для создания графика
 def create_weight_plot(weights):
+    """Создаёт график изменения веса и возвращает его в виде буфера.
+
+    Args:
+        weights (list): Список значений веса пользователя.
+
+    Returns:
+        io.BytesIO: Буфер с изображением графика в формате PNG.
+    """
     plt.figure()
     plt.plot(weights, marker='o')
     plt.title('Статистика похудения')
@@ -72,7 +107,16 @@ def create_weight_plot(weights):
 
     return buf
 
-# Обработчик кнопки "Назад"
 async def back_to_main_menu_from_stat(update: Update, context: ContextTypes.DEFAULT_TYPE, start_function):
+    """Возвращает пользователя в главное меню.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+        start_function (callable): Функция для отображения главного меню.
+
+    Returns:
+        None: Функция вызывает start_function для возврата в главное меню.
+    """
     # Возврат в главное меню
     await start_function(update, context)

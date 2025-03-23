@@ -1,10 +1,10 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name="bodytracker_tg_bot",
     version="0.1.0",
-    packages=find_packages(),
-    long_description=open('README.md').read(),
+    py_modules=["BodyTracker_tg-bot"],  # Указываем основной файл
+    long_description=open('README.md', encoding='utf-8').read(),
     install_requires=[
         "python-telegram-bot==20.6",
         "python-dotenv==1.0.1",

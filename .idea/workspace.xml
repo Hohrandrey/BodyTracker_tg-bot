@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d498ed0d-75cb-4703-bfe7-539587f8e9c3" name="Changes" comment="сборка документации" />
+    <list default="true" id="d498ed0d-75cb-4703-bfe7-539587f8e9c3" name="Changes" comment="сборка документации">
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

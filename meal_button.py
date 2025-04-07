@@ -1,41 +1,75 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackQueryHandler
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackQueryHandler, ContextTypes, MessageHandler, filters
 import sqlite3
 
-
 def get_meal_button():
+    """Создаёт клавиатуру с кнопкой 'Добавить приём пищи'.
+
+    Returns:
+        telegram.InlineKeyboardMarkup: Объект клавиатуры с одной кнопкой для добавления приёма пищи.
+    """
     keyboard = [[InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")]]
     return InlineKeyboardMarkup(keyboard)
 
+async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает нажатие кнопки 'Добавить приём пищи' и отображает меню выбора типа приёма пищи.
 
-def meal_button_handler(update, context):
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отправляет сообщение с выбором типа приёма пищи.
+    """
     query = update.callback_query
     user_id = query.from_user.id
     date = query.message.date.strftime("%Y-%m-%d")
 
+    # Подключение к базе данных и создание таблицы, если её нет
     conn = sqlite3.connect("meals.db", check_same_thread=False)
     c = conn.cursor()
     c.execute(
         '''CREATE TABLE IF NOT EXISTS meals (id INTEGER PRIMARY KEY, user_id INTEGER, date TEXT, meal TEXT, food TEXT)''')
     conn.commit()
+    conn.close()
 
+    # Клавиатура с выбором типа приёма пищи
     keyboard = [[InlineKeyboardButton("Завтрак", callback_data="breakfast"),
                  InlineKeyboardButton("Обед", callback_data="lunch")],
                 [InlineKeyboardButton("Ужин", callback_data="dinner"),
                  InlineKeyboardButton("Перекус", callback_data="snack")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    query.message.reply_text("Выберите приём пищи:", reply_markup=reply_markup)
-    query.answer()
+    await query.message.reply_text("Выберите приём пищи:", reply_markup=reply_markup)
+    await query.answer()
 
+async def meal_choice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает выбор типа приёма пищи и запрашивает список продуктов.
 
-def meal_choice_handler(update, context):
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет выбранный тип приёма пищи и отправляет запрос на ввод продуктов.
+    """
     query = update.callback_query
     context.user_data['meal'] = query.data
-    query.message.reply_text(f"Вы выбрали {query.data}. Теперь отправьте список продуктов, которые съели.")
-    query.answer()
+    await query.message.reply_text(f"Вы выбрали {query.data}. Теперь отправьте список продуктов, которые съели.")
+    await query.answer()
 
+async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Сохраняет данные о приёме пищи в базу данных и возвращает пользователя в главное меню.
 
-def save_meal(update, context):
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет приём пищи в базу данных и отправляет подтверждение или ошибку.
+
+    Notes:
+        Требует, чтобы в context.user_data был сохранён тип приёма пищи ('meal') и функция возврата ('start_function').
+    """
     user_id = update.message.from_user.id
     date = update.message.date.strftime("%Y-%m-%d")
     meal = context.user_data.get('meal')
@@ -46,14 +80,47 @@ def save_meal(update, context):
         c = conn.cursor()
         c.execute("INSERT INTO meals (user_id, date, meal, food) VALUES (?, ?, ?, ?)", (user_id, date, meal, food))
         conn.commit()
-        update.message.reply_text("Приём пищи сохранён!")
+        conn.close()
+        await update.message.reply_text("Приём пищи сохранён!")
+        # Возврат в главное меню
+        start_function = context.user_data.get('start_function')
+        if start_function:
+            await start_function(update, context)
     else:
-        update.message.reply_text("Сначала выберите приём пищи.")
+        await update.message.reply_text("Сначала выберите приём пищи.")
 
+def get_meal_button():
+    keyboard = [
+        [InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")],
+        [InlineKeyboardButton("Просмотреть приёмы пищи", callback_data="view_meals")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
-def get_meal_button_handler():
-    return CallbackQueryHandler(meal_button_handler, pattern='^add_meal$')
+async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.
 
+    Args:
+        update (telegram.Update): Объект обновления.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст пользователя.
 
-def get_meal_choice_handler():
-    return CallbackQueryHandler(meal_choice_handler, pattern='^(breakfast|lunch|dinner|snack)$')
+    Returns:
+        None
+    """
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    conn = sqlite3.connect("meals.db", check_same_thread=False)
+    c = conn.cursor()
+    c.execute("SELECT date, meal, food FROM meals WHERE user_id = ? ORDER BY date DESC", (user_id,))
+    meals = c.fetchall()
+    conn.close()
+
+    if meals:
+        message = "Ваши приёмы пищи:\n\n"
+        for date, meal, food in meals:
+            message += f"📅 *{date}* — 🍽️ *{meal}*\n{food}\n\n"
+    else:
+        message = "У вас пока нет сохранённых приёмов пищи."
+
+    await query.message.reply_text(message, parse_mode='Markdown')
+    await query.answer()

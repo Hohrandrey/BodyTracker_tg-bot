@@ -13,13 +13,22 @@ async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         None: Функция отправляет сообщение с выбором типа приёма пищи.
     """
     query = update.callback_query
+    user_id = query.from_user.id
+    date = query.message.date.strftime("%Y-%m-%d")
+
+    # Подключение к базе данных и создание таблицы, если её нет
+    conn = sqlite3.connect("meals.db", check_same_thread=False)
+    c = conn.cursor()
+    c.execute(
+        '''CREATE TABLE IF NOT EXISTS meals (id INTEGER PRIMARY KEY, user_id INTEGER, date TEXT, meal TEXT, food TEXT)''')
+    conn.commit()
+    conn.close()
+
     # Клавиатура с выбором типа приёма пищи
-    keyboard = [
-        [InlineKeyboardButton("Завтрак", callback_data="breakfast"),
-         InlineKeyboardButton("Обед", callback_data="lunch")],
-        [InlineKeyboardButton("Ужин", callback_data="dinner"),
-         InlineKeyboardButton("Перекус", callback_data="snack")]
-    ]
+    keyboard = [[InlineKeyboardButton("Завтрак", callback_data="breakfast"),
+                 InlineKeyboardButton("Обед", callback_data="lunch")],
+                [InlineKeyboardButton("Ужин", callback_data="dinner"),
+                 InlineKeyboardButton("Перекус", callback_data="snack")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.message.reply_text("Выберите приём пищи:", reply_markup=reply_markup)
     await query.answer()
@@ -35,7 +44,7 @@ async def meal_choice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         None: Функция сохраняет выбранный тип приёма пищи и отправляет запрос на ввод продуктов.
     """
     query = update.callback_query
-    context.user_data['meal'] = query.data  # Сохраняем тип приёма пищи
+    context.user_data['meal'] = query.data
     await query.message.reply_text(f"Вы выбрали {query.data}. Теперь отправьте список продуктов, которые съели.")
     await query.answer()
 

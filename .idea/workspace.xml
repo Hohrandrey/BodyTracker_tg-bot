@@ -51,20 +51,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.BodyTracker_tg-bot.executor": "Run",
-    "Python.CaloriesCalculator.executor": "Run",
-    "Python.bmi_calculator.executor": "Run",
-    "Python.water_reminder.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Merging main",
-    "last_opened_file_path": "C:/Users/ANDREY/OneDrive/Рабочий стол/кодинг/python/tfw"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.BodyTracker_tg-bot.executor&quot;: &quot;Run&quot;,
+    &quot;Python.CaloriesCalculator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.bmi_calculator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.water_reminder.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Merging main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ANDREY/OneDrive/Рабочий стол/кодинг/python/tfw&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
-    <configuration name="BodyTracker_tg-bot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="BodyTracker_tg-bot_true" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="BodyTracker_tg-bot" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -88,7 +88,7 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.BodyTracker_tg-bot" />
+        <item itemvalue="Python.BodyTracker_tg-bot_true" />
       </list>
     </recent_temporary>
   </component>

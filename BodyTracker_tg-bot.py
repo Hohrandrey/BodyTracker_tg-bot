@@ -85,7 +85,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Выберите действие:", reply_markup=reply_markup)
     elif query.data == 'add_meal':
-        await show_reminders_menu(update, context)
+        await meal_button_handler(update, context)
+    elif query.data == 'view_meals':
+        await view_meals_handler(update, context)
     elif query.data == 'reminders':
         await toggle_reminders(update, context)
     elif query.data == 'add_reminder':

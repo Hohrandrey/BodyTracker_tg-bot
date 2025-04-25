@@ -15,10 +15,10 @@ async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     # Клавиатура с выбором типа приёма пищи
     keyboard = [
-        [InlineKeyboardButton("Завтрак", callback_data="breakfast"),
-         InlineKeyboardButton("Обед", callback_data="lunch")],
-        [InlineKeyboardButton("Ужин", callback_data="dinner"),
-         InlineKeyboardButton("Перекус", callback_data="snack")]
+        [InlineKeyboardButton("Завтрак", callback_data="завтрак"),
+         InlineKeyboardButton("Обед", callback_data="обед")],
+        [InlineKeyboardButton("Ужин", callback_data="ужин"),
+         InlineKeyboardButton("Перекус", callback_data="перекус")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.message.reply_text("Выберите приём пищи:", reply_markup=reply_markup)
@@ -92,4 +92,3 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     await query.message.reply_text(message, parse_mode='Markdown')
     await query.answer()
-

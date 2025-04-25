@@ -88,3 +88,40 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await start_function(update, context)
     else:
         await update.message.reply_text("Сначала выберите приём пищи.")
+
+def get_meal_button():
+    keyboard = [
+        [InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")],
+        [InlineKeyboardButton("Просмотреть приёмы пищи", callback_data="view_meals")]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.
+
+    Args:
+        update (telegram.Update): Объект обновления.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст пользователя.
+
+    Returns:
+        None
+    """
+    query = update.callback_query
+    user_id = query.from_user.id
+
+    conn = sqlite3.connect("meals.db", check_same_thread=False)
+    c = conn.cursor()
+    c.execute("SELECT date, meal, food FROM meals WHERE user_id = ? ORDER BY date DESC", (user_id,))
+    meals = c.fetchall()
+    conn.close()
+
+    if meals:
+        message = "Ваши приёмы пищи:\n\n"
+        for date, meal, food in meals:
+            message += f"📅 *{date}* — 🍽️ *{meal}*\n{food}\n\n"
+    else:
+        message = "У вас пока нет сохранённых приёмов пищи."
+
+    await query.message.reply_text(message, parse_mode='Markdown')
+    await query.answer()
+

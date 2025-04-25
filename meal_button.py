@@ -8,7 +8,10 @@ def get_meal_button():
     Returns:
         telegram.InlineKeyboardMarkup: Объект клавиатуры с одной кнопкой для добавления приёма пищи.
     """
-    keyboard = [[InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")]]
+    keyboard = [
+        [InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")],
+        [InlineKeyboardButton("Просмотреть приёмы пищи", callback_data="view_meals")]
+    ]
     return InlineKeyboardMarkup(keyboard)
 
 async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -34,10 +37,10 @@ async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     conn.close()
 
     # Клавиатура с выбором типа приёма пищи
-    keyboard = [[InlineKeyboardButton("Завтрак", callback_data="breakfast"),
-                 InlineKeyboardButton("Обед", callback_data="lunch")],
-                [InlineKeyboardButton("Ужин", callback_data="dinner"),
-                 InlineKeyboardButton("Перекус", callback_data="snack")]]
+    keyboard = [[InlineKeyboardButton("Завтрак", callback_data="завтрак"),
+                 InlineKeyboardButton("Обед", callback_data="обед")],
+                [InlineKeyboardButton("Ужин", callback_data="ужин"),
+                 InlineKeyboardButton("Перекус", callback_data="перекус")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.message.reply_text("Выберите приём пищи:", reply_markup=reply_markup)
     await query.answer()

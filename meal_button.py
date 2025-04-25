@@ -123,4 +123,4 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         message = "У вас пока нет сохранённых приёмов пищи."
 
     await query.message.reply_text(message, parse_mode='Markdown')
-    await query.answer()
+    await query.answer() 

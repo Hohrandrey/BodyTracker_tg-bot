@@ -1,18 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CallbackQueryHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import CallbackQueryHandler, ContextTypes
 import sqlite3
-
-def get_meal_button():
-    """Создаёт клавиатуру с кнопкой 'Добавить приём пищи'.
-
-    Returns:
-        telegram.InlineKeyboardMarkup: Объект клавиатуры с одной кнопкой для добавления приёма пищи.
-    """
-    keyboard = [
-        [InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")],
-        [InlineKeyboardButton("Просмотреть приёмы пищи", callback_data="view_meals")]
-    ]
-    return InlineKeyboardMarkup(keyboard)
 
 async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает нажатие кнопки 'Добавить приём пищи' и отображает меню выбора типа приёма пищи.
@@ -25,22 +13,13 @@ async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
         None: Функция отправляет сообщение с выбором типа приёма пищи.
     """
     query = update.callback_query
-    user_id = query.from_user.id
-    date = query.message.date.strftime("%Y-%m-%d")
-
-    # Подключение к базе данных и создание таблицы, если её нет
-    conn = sqlite3.connect("meals.db", check_same_thread=False)
-    c = conn.cursor()
-    c.execute(
-        '''CREATE TABLE IF NOT EXISTS meals (id INTEGER PRIMARY KEY, user_id INTEGER, date TEXT, meal TEXT, food TEXT)''')
-    conn.commit()
-    conn.close()
-
     # Клавиатура с выбором типа приёма пищи
-    keyboard = [[InlineKeyboardButton("Завтрак", callback_data="завтрак"),
-                 InlineKeyboardButton("Обед", callback_data="обед")],
-                [InlineKeyboardButton("Ужин", callback_data="ужин"),
-                 InlineKeyboardButton("Перекус", callback_data="перекус")]]
+    keyboard = [
+        [InlineKeyboardButton("Завтрак", callback_data="breakfast"),
+         InlineKeyboardButton("Обед", callback_data="lunch")],
+        [InlineKeyboardButton("Ужин", callback_data="dinner"),
+         InlineKeyboardButton("Перекус", callback_data="snack")]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.message.reply_text("Выберите приём пищи:", reply_markup=reply_markup)
     await query.answer()
@@ -69,9 +48,6 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     Returns:
         None: Функция сохраняет приём пищи в базу данных и отправляет подтверждение или ошибку.
-
-    Notes:
-        Требует, чтобы в context.user_data был сохранён тип приёма пищи ('meal') и функция возврата ('start_function').
     """
     user_id = update.message.from_user.id
     date = update.message.date.strftime("%Y-%m-%d")
@@ -85,19 +61,8 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         conn.commit()
         conn.close()
         await update.message.reply_text("Приём пищи сохранён!")
-        # Возврат в главное меню
-        start_function = context.user_data.get('start_function')
-        if start_function:
-            await start_function(update, context)
     else:
         await update.message.reply_text("Сначала выберите приём пищи.")
-
-def get_meal_button():
-    keyboard = [
-        [InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")],
-        [InlineKeyboardButton("Просмотреть приёмы пищи", callback_data="view_meals")]
-    ]
-    return InlineKeyboardMarkup(keyboard)
 
 async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.

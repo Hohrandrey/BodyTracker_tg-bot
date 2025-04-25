@@ -9,16 +9,23 @@ from weight_statistics import (
     show_weight_statistics_menu, enter_weight, handle_weight_stat, back_to_main_menu_from_stat
 )
 from CaloriesCalculator import (
-    handle_calories_start, handle_gender, handle_age, handle_weight, handle_height, handle_activity
+    handle_calories_start, handle_gender, handle_age, handle_weigh, handle_heigh, handle_activity
 )
 from meal_button import meal_button_handler, meal_choice_handler, save_meal, view_meals_handler
-
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'
 
-# Обработчик команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отображает главное меню бота с основными функциями.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий сообщение или callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция отправляет сообщение с меню в чат и сохраняет chat_id пользователя.
+    """
     keyboard = [
         [InlineKeyboardButton("Рассчитать индекс массы тела", callback_data='rach')],
         [InlineKeyboardButton("Статистика похудения", callback_data='stat')],
@@ -46,8 +53,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup
         )
 
-# Обработчик нажатий на кнопки
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает нажатия на кнопки в меню и вызывает соответствующие функции.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий callback-запрос.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция перенаправляет запрос на соответствующую обработку в зависимости от callback_data.
+    """
     query = update.callback_query
     await query.answer()
 
@@ -70,8 +85,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("Выберите действие:", reply_markup=reply_markup)
     elif query.data == 'add_meal':
-        await show_reminders_menu(update, context)
-    elif query.data == 'toggle_reminders':
+        await meal_button_handler(update, context)
+    elif query.data == 'view_meals':
+        await view_meals_handler(update, context)
+    elif query.data == 'reminders':
         await toggle_reminders(update, context)
     elif query.data == 'add_reminder':
         await add_reminder(update, context)
@@ -80,7 +97,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data.startswith('delete_'):
         await handle_delete_reminder(update, context)
     elif query.data == 'back_to_main':
-        await back_to_main_menu_from_stat(update, context, start)  # Передаем start как аргумент
+        await back_to_main_menu_from_stat(update, context, start)
     elif query.data == 'back_to_reminders':
         await back_to_reminders_menu(update, context)
     elif query.data in ['gender_m', 'gender_f']:
@@ -88,26 +105,40 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data.startswith('activity_'):
         await handle_activity(update, context)
 
-# Обработка сообщений от пользователя
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обрабатывает текстовые сообщения пользователя в зависимости от текущего состояния.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция вызывает соответствующую функцию обработки на основе состояния пользователя.
+
+    Notes:
+        Состояние хранится в context.user_data['state'] и определяет, какой ввод ожидается.
+    """
     state = context.user_data.get('state', None)
     if state == 'waiting_for_weight':
         await handle_weight(update, context)
     elif state == 'waiting_for_height':
-        await handle_height(update, context, start)  # Передаем start как аргумент
+        await handle_height(update, context, start)
     elif state == 'waiting_for_reminder_time':
         await handle_reminder_time(update, context)
     elif state == 'waiting_for_weight_stat':
-        await handle_weight_stat(update, context, start)  # Передаем start как аргумент
+        await handle_weight_stat(update, context, start)
     elif state == 'waiting_for_age':
         await handle_age(update, context)
     elif state == 'waiting_for_calories_weight':
-        await handle_weight(update, context)
+        await handle_weigh(update, context)
     elif state == 'waiting_for_calories_height':
-        await handle_height(update, context)
+        await handle_heigh(update, context)
+    elif 'meal' in context.user_data:
+        # Если пользователь выбрал приём пищи, сохраняем еду
+        await save_meal(update, context)
 
-# Основная функция
 if __name__ == '__main__':
+    """Запускает Telegram-бота с заданными обработчиками команд и событий."""
     print("Запуск бота...")
     app = Application.builder().token(BOT_TOKEN).build()
 

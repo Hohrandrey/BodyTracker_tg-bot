@@ -11,10 +11,8 @@ from weight_statistics import (
 from CaloriesCalculator import (
     handle_calories_start, handle_gender, handle_age, handle_weight, handle_height, handle_activity
 )
-from meal_button import (
-    get_meal_button, meal_button_handler, meal_choice_handler, save_meal, 
-get_meal_button_handler, get_meal_choice_handler
-)
+from meal_button import meal_button_handler, meal_choice_handler, save_meal, view_meals_handler
+
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'
@@ -64,7 +62,13 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'kkal':
         await handle_calories_start(update, context)
     elif query.data == 'control':
-        await meal_button(update, context)
+        # Показываем меню с "Добавить приём пищи" и "Просмотреть приёмы пищи"
+        keyboard = [
+            [InlineKeyboardButton("Добавить приём пищи", callback_data="add_meal")],
+            [InlineKeyboardButton("Просмотреть приёмы пищи", callback_data="view_meals")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text("Выберите действие:", reply_markup=reply_markup)
     elif query.data == 'add_meal':
         await show_reminders_menu(update, context)
     elif query.data == 'toggle_reminders':

@@ -62,8 +62,10 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     Returns:
         None: Функция вызывает start_func для возврата в главное меню.
     """
-    query = update.callback_query
-    await query.answer()
+    # Проверка на наличие callback_query
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()  # Только если callback_query существует
 
     # Сохраняем chat_id для уведомлений
     if update.message:

@@ -98,7 +98,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_delete_reminder(update, context)
     elif query.data == 'back_to_main':
         await back_to_main_menu_from_stat(update, context, start)
-    elif query.data == 'back_to_main':  # Добавляем новое условие для возврата в главное меню
+    elif query.data == 'back_to_main':
         await back_to_main_menu(update, context, start)
     elif query.data == 'back_to_reminders':
         await back_to_reminders_menu(update, context)
@@ -137,7 +137,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_heigh(update, context)
     elif 'meal' in context.user_data:
         # Если пользователь выбрал приём пищи, сохраняем еду
-        await save_meal(update, context)
+        await save_meal(update, context,start)
         await back_to_main_menu(update, context, start)
 
 if __name__ == '__main__':

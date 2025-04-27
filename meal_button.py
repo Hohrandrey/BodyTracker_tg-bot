@@ -50,6 +50,30 @@ async def meal_choice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.message.reply_text(f"Вы выбрали {query.data}. Теперь отправьте список продуктов, которые съели.")
     await query.answer()
 
+async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, start_func):
+    """Возвращает пользователя в главное меню.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+        start_func (callable): Функция для отображения главного меню.
+
+    Returns:
+        None: Функция вызывает start_func для возврата в главное меню.
+    """
+    query = update.callback_query
+    await query.answer()
+
+    # Сохраняем chat_id для уведомлений
+    if update.message:
+        context.user_data['chat_id'] = update.message.chat_id
+    elif update.callback_query:
+        context.user_data['chat_id'] = update.callback_query.message.chat_id
+
+    # Возвращаемся в главное меню
+    await start_func(update, context)
+
+
 async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Сохраняет данные о приёме пищи в базу данных и возвращает пользователя в главное меню.
 
@@ -76,11 +100,10 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         conn.close()
         await update.message.reply_text("✅ Приём пищи сохранён!")
 
-        # Автоматический возврат в главное меню
-        await start(update, context)
+        # Возвращаемся в главное меню
+        await back_to_main_menu(update, context, start)  # Используем универсальную функцию
     else:
         await update.message.reply_text("⚠️ Сначала выберите приём пищи.")
-
 
 async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.
@@ -109,9 +132,8 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         message = "У вас пока нет сохранённых приёмов пищи."
 
     await query.message.reply_text(message, parse_mode='Markdown')
-
-    await start(update, context)
-
     await query.answer()
 
+    # Возвращаемся в главное меню
+    await back_to_main_menu(update, context, start)
 

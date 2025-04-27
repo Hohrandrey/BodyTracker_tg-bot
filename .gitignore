@@ -2,3 +2,6 @@
 .idea/BodyTracker_tg-bot.iml
 .idea/misc.xml
 .idea/vcs.xml
+__pycache__/bmi_calculator.cpython-311.pyc
+__pycache__/water_reminder.cpython-311.pyc
+__pycache__/weight_statistics.cpython-311.pyc

@@ -108,7 +108,7 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE, start_fu
     else:
         await update.message.reply_text("⚠️ Сначала выберите приём пищи.")
 
-async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE,start_func):
     """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.
 
     Args:
@@ -136,7 +136,6 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     await query.message.reply_text(message, parse_mode='Markdown')
     await query.answer()
-
     await start_func(update, context)
 
 

@@ -1,6 +1,8 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, ContextTypes
 import sqlite3
+from main import start
+
 
 async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает нажатие кнопки 'Добавить приём пищи' и отображает меню выбора типа приёма пищи.
@@ -74,14 +76,11 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         conn.close()
         await update.message.reply_text("✅ Приём пищи сохранён!")
 
-        # Возвращаем пользователя обратно в главное меню
-        start_function = context.user_data.get('start_function')
-        if start_function:
-            await start_function(update, context)
-        else:
-            await update.message.reply_text("Можете продолжать пользоваться ботом.")
+        # Автоматический возврат в главное меню
+        await start(update, context)
     else:
         await update.message.reply_text("⚠️ Сначала выберите приём пищи.")
+
 
 async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.
@@ -110,5 +109,9 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         message = "У вас пока нет сохранённых приёмов пищи."
 
     await query.message.reply_text(message, parse_mode='Markdown')
+
+    await start(update, context)
+
     await query.answer()
+
 

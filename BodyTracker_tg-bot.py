@@ -87,7 +87,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'add_meal':
         await meal_button_handler(update, context)
     elif query.data == 'view_meals':
-        await view_meals_handler(update, context)
+        await view_meals_handler(update, context,start)
     elif query.data == 'reminders':
         await toggle_reminders(update, context)
     elif query.data == 'add_reminder':

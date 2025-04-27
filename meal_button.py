@@ -137,4 +137,6 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.message.reply_text(message, parse_mode='Markdown')
     await query.answer()
 
+    await back_to_main_menu(update, context, start)
+
 

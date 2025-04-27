@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, ContextTypes
 import sqlite3
-from main import start
+
 
 
 async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):

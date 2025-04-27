@@ -139,8 +139,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Если пользователь выбрал приём пищи, сохраняем еду
         await save_meal(update, context)
         await back_to_main_menu(update, context, start)
-    elif update.message:  # Если это обычное текстовое сообщение
-        await update.message.reply_text("Привет! Чем могу помочь?")
+    
 
 if __name__ == '__main__':
     """Запускает Telegram-бота с заданными обработчиками команд и событий."""

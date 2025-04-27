@@ -108,7 +108,7 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE, start_fu
     else:
         await update.message.reply_text("⚠️ Сначала выберите приём пищи.")
 
-async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE,start_func):
     """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.
 
     Args:

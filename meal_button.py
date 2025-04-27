@@ -119,6 +119,8 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE,
         None
     """
     query = update.callback_query
+    await query.answer()  # Важно вызвать это в начале
+
     user_id = query.from_user.id
 
     conn = sqlite3.connect("meals.db", check_same_thread=False)
@@ -134,11 +136,11 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE,
     else:
         message = "У вас пока нет сохранённых приёмов пищи."
 
+    # Отправляем сообщение с приёмами пищи
     await query.message.reply_text(message, parse_mode='Markdown')
-    await query.answer()
 
-    # Дожидаемся завершения всех операций перед возвратом в главное меню
-     # Добавим небольшую задержку
+    # Возвращаемся в главное меню, используя оригинальное сообщение
     await start_func(update, context)
+
 
 

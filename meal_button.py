@@ -2,6 +2,8 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import CallbackQueryHandler, ContextTypes
 import sqlite3
 
+
+
 async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает нажатие кнопки 'Добавить приём пищи' и отображает меню выбора типа приёма пищи.
 
@@ -44,34 +46,79 @@ async def meal_choice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.message.reply_text(f"Вы выбрали {query.data}. Теперь отправьте список продуктов, которые съели.")
     await query.answer()
 
+async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, start_func):
+    """Возвращает пользователя в главное меню.
 
-# Сохраняем приём пищи в базу данных
-async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Сохраняет данные о приёме пищи в базу данных и возвращает пользователя в главное меню."""
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий информацию о запросе.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+        start_func (callable): Функция для отображения главного меню.
+
+    Returns:
+        None: Функция вызывает start_func для возврата в главное меню.
+    """
+    # Проверка на наличие callback_query
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()  # Только если callback_query существует
+
+    # Сохраняем chat_id для уведомлений
+    if update.message:
+        context.user_data['chat_id'] = update.message.chat_id
+    elif update.callback_query:
+        context.user_data['chat_id'] = update.callback_query.message.chat_id
+
+    # Возвращаемся в главное меню
+    await start_func(update, context)
+
+async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE, start_func):
+    """Сохраняет данные о приёме пищи в базу данных и возвращает пользователя в главное меню.
+
+    Args:
+        update (telegram.Update): Объект обновления от Telegram, содержащий текст сообщения.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст бота, содержащий данные пользователя.
+
+    Returns:
+        None: Функция сохраняет приём пищи в базу данных и отправляет подтверждение или ошибку.
+
+    Notes:
+        Требует, чтобы в context.user_data был сохранён тип приёма пищи ('meal') и функция возврата ('start_function').
+    """
     user_id = update.message.from_user.id
     date = update.message.date.strftime("%Y-%m-%d")
-    meal = context.user_data.get('meal')  # Получаем тип приёма пищи
-    food = update.message.text  # Получаем список продуктов
+    meal = context.user_data.get('meal')
+    food = update.message.text
 
-    if meal:  # Проверяем, был ли выбран приём пищи
-        # Подключаемся к базе данных и сохраняем информацию
+    if meal:
+        # Сохраняем приём пищи в базу данных
         conn = sqlite3.connect("meals.db", check_same_thread=False)
         c = conn.cursor()
         c.execute("INSERT INTO meals (user_id, date, meal, food) VALUES (?, ?, ?, ?)", (user_id, date, meal, food))
         conn.commit()
         conn.close()
-        await update.message.reply_text("Приём пищи сохранён!")
+
+        await update.message.reply_text("✅ Приём пищи сохранён!")
+
+        # Возвращаемся в главное меню
+        await start_func(update, context)  # Вызов функции start для возврата в главное меню
     else:
-        await update.message.reply_text("Сначала выберите приём пищи.")
+        await update.message.reply_text("⚠️ Сначала выберите приём пищи.")
 
+async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE,start_func):
+    """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.
 
-# Обработчик для просмотра сохранённых приёмов пищи
-async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате."""
+    Args:
+        update (telegram.Update): Объект обновления.
+        context (telegram.ext.ContextTypes.DEFAULT_TYPE): Контекст пользователя.
+
+    Returns:
+        None
+    """
     query = update.callback_query
+    await query.answer()  # Важно вызвать это в начале
+
     user_id = query.from_user.id
 
-    # Подключаемся к базе данных
     conn = sqlite3.connect("meals.db", check_same_thread=False)
     c = conn.cursor()
     c.execute("SELECT date, meal, food FROM meals WHERE user_id = ? ORDER BY date DESC", (user_id,))
@@ -85,6 +132,8 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         message = "У вас пока нет сохранённых приёмов пищи."
 
+    # Отправляем сообщение с приёмами пищи
     await query.message.reply_text(message, parse_mode='Markdown')
-    await query.answer()
 
+    # Возвращаемся в главное меню, используя оригинальное сообщение
+    await start_func(update, context)

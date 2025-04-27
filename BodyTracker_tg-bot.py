@@ -11,7 +11,7 @@ from weight_statistics import (
 from CaloriesCalculator import (
     handle_calories_start, handle_gender, handle_age, handle_weigh, handle_heigh, handle_activity
 )
-from meal_button import meal_button_handler, meal_choice_handler, save_meal, view_meals_handler
+from meal_button import meal_button_handler, meal_choice_handler,back_to_main_menu, save_meal, view_meals_handler
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'
@@ -87,7 +87,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'add_meal':
         await meal_button_handler(update, context)
     elif query.data == 'view_meals':
-        await view_meals_handler(update, context)
+        await view_meals_handler(update, context,start)
     elif query.data == 'reminders':
         await toggle_reminders(update, context)
     elif query.data == 'add_reminder':
@@ -98,6 +98,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_delete_reminder(update, context)
     elif query.data == 'back_to_main':
         await back_to_main_menu_from_stat(update, context, start)
+    elif query.data == 'back_to_main':
+        await back_to_main_menu(update, context, start)
     elif query.data == 'back_to_reminders':
         await back_to_reminders_menu(update, context)
     elif query.data in ['gender_m', 'gender_f']:
@@ -135,7 +137,8 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_heigh(update, context)
     elif 'meal' in context.user_data:
         # Если пользователь выбрал приём пищи, сохраняем еду
-        await save_meal(update, context)
+        await save_meal(update, context,start)
+        #await back_to_main_menu(update, context, start)
 
 if __name__ == '__main__':
     """Запускает Telegram-бота с заданными обработчиками команд и событий."""
@@ -143,8 +146,10 @@ if __name__ == '__main__':
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(meal_choice_handler, pattern='^(breakfast|lunch|dinner|snack)$'))
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+
 
     print("Бот работает...")
     app.run_polling()

@@ -57,25 +57,28 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     Returns:
         None: Функция сохраняет приём пищи в базу данных и отправляет подтверждение или ошибку.
+
+    Notes:
+        Требует, чтобы в context.user_data был сохранён тип приёма пищи ('meal') и функция возврата ('start_function').
     """
+    user_id = update.message.from_user.id
+    date = update.message.date.strftime("%Y-%m-%d")
+    meal = context.user_data.get('meal')
+    food = update.message.text
 
-    async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Сохраняет данные о приёме пищи в базу данных и возвращает пользователя в главное меню."""
-        user_id = update.message.from_user.id
-        date = update.message.date.strftime("%Y-%m-%d")
-        meal = context.user_data.get('meal')  # Получаем тип приёма пищи
-        food = update.message.text  # Получаем список продуктов
-
-        if meal:
-            # Подключаемся к базе данных и сохраняем информацию
-            conn = sqlite3.connect("meals.db", check_same_thread=False)
-            c = conn.cursor()
-            c.execute("INSERT INTO meals (user_id, date, meal, food) VALUES (?, ?, ?, ?)", (user_id, date, meal, food))
-            conn.commit()
-            conn.close()
-            await update.message.reply_text("Приём пищи сохранён!")
-        else:
-            await update.message.reply_text("Сначала выберите приём пищи.")
+    if meal:
+        conn = sqlite3.connect("meals.db", check_same_thread=False)
+        c = conn.cursor()
+        c.execute("INSERT INTO meals (user_id, date, meal, food) VALUES (?, ?, ?, ?)", (user_id, date, meal, food))
+        conn.commit()
+        conn.close()
+        await update.message.reply_text("Приём пищи сохранён!")
+        # Возврат в главное меню
+        start_function = context.user_data.get('start_function')
+        if start_function:
+            await start_function(update, context)
+    else:
+        await update.message.reply_text("Сначала выберите приём пищи.")
 
 async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.
@@ -87,26 +90,22 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     Returns:
         None
     """
+    query = update.callback_query
+    user_id = query.from_user.id
 
-    async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате."""
-        query = update.callback_query
-        user_id = query.from_user.id
+    conn = sqlite3.connect("meals.db", check_same_thread=False)
+    c = conn.cursor()
+    c.execute("SELECT date, meal, food FROM meals WHERE user_id = ? ORDER BY date DESC", (user_id,))
+    meals = c.fetchall()
+    conn.close()
 
-        # Подключаемся к базе данных
-        conn = sqlite3.connect("meals.db", check_same_thread=False)
-        c = conn.cursor()
-        c.execute("SELECT date, meal, food FROM meals WHERE user_id = ? ORDER BY date DESC", (user_id,))
-        meals = c.fetchall()
-        conn.close()
+    if meals:
+        message = "Ваши приёмы пищи:\n\n"
+        for date, meal, food in meals:
+            message += f"📅 *{date}* — 🍽️ *{meal}*\n{food}\n\n"
+    else:
+        message = "У вас пока нет сохранённых приёмов пищи."
 
-        if meals:
-            message = "Ваши приёмы пищи:\n\n"
-            for date, meal, food in meals:
-                message += f"📅 *{date}* — 🍽️ *{meal}*\n{food}\n\n"
-        else:
-            message = "У вас пока нет сохранённых приёмов пищи."
-
-        await query.message.reply_text(message, parse_mode='Markdown')
-        await query.answer()
+    await query.message.reply_text(message, parse_mode='Markdown')
+    await query.answer()
 

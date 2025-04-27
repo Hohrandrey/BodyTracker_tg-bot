@@ -138,7 +138,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif 'meal' in context.user_data:
         # Если пользователь выбрал приём пищи, сохраняем еду
         await save_meal(update, context,start)
-        await back_to_main_menu(update, context, start)
+        #await back_to_main_menu(update, context, start)
 
 if __name__ == '__main__':
     """Запускает Telegram-бота с заданными обработчиками команд и событий."""

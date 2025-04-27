@@ -145,6 +145,7 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+    app.add_handler(CallbackQueryHandler(meal_choice_handler, pattern='^(breakfast|lunch|dinner|snack)$'))
 
     print("Бот работает...")
     app.run_polling()

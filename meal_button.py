@@ -72,13 +72,16 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         c.execute("INSERT INTO meals (user_id, date, meal, food) VALUES (?, ?, ?, ?)", (user_id, date, meal, food))
         conn.commit()
         conn.close()
-        await update.message.reply_text("Приём пищи сохранён!")
-        # Возврат в главное меню
+        await update.message.reply_text("✅ Приём пищи сохранён!")
+
+        # Возвращаем пользователя обратно в главное меню
         start_function = context.user_data.get('start_function')
         if start_function:
             await start_function(update, context)
+        else:
+            await update.message.reply_text("Можете продолжать пользоваться ботом.")
     else:
-        await update.message.reply_text("Сначала выберите приём пищи.")
+        await update.message.reply_text("⚠️ Сначала выберите приём пищи.")
 
 async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает нажатие кнопки 'Просмотреть приёмы пищи' и показывает список по дате.

@@ -138,7 +138,7 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
 
     # Дожидаемся завершения всех операций перед возвратом в главное меню
-    await asyncio.sleep(1)  # Добавим небольшую задержку
-    await start(update, context)
+     # Добавим небольшую задержку
+    await back_to_main_menu(update, context, start)
 
 

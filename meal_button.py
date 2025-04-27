@@ -14,6 +14,7 @@ async def meal_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     Returns:
         None: Функция отправляет сообщение с выбором типа приёма пищи.
     """
+    """Обрабатывает нажатие кнопки 'Добавить приём пищи' и отображает меню выбора типа приёма пищи."""
     query = update.callback_query
     user_id = query.from_user.id
     date = query.message.date.strftime("%Y-%m-%d")
@@ -92,6 +93,7 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     food = update.message.text
 
     if meal:
+        # Сохраняем приём пищи в базу данных
         conn = sqlite3.connect("meals.db", check_same_thread=False)
         c = conn.cursor()
         c.execute("INSERT INTO meals (user_id, date, meal, food) VALUES (?, ?, ?, ?)", (user_id, date, meal, food))
@@ -100,7 +102,7 @@ async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("✅ Приём пищи сохранён!")
 
         # Возвращаемся в главное меню
-        await back_to_main_menu(update, context, start)  # Используем универсальную функцию
+        await back_to_main_menu(update, context, start)  # Важно вызвать функцию start
     else:
         await update.message.reply_text("⚠️ Сначала выберите приём пищи.")
 
@@ -133,6 +135,4 @@ async def view_meals_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.message.reply_text(message, parse_mode='Markdown')
     await query.answer()
 
-    # Возвращаемся в главное меню
-    await back_to_main_menu(update, context, start)
 

@@ -11,7 +11,7 @@ from weight_statistics import (
 from CaloriesCalculator import (
     handle_calories_start, handle_gender, handle_age, handle_weigh, handle_heigh, handle_activity
 )
-from meal_button import meal_button_handler, meal_choice_handler, save_meal, view_meals_handler
+from meal_button import meal_button_handler, meal_choice_handler,back_to_main_menu, save_meal, view_meals_handler
 
 # Токен вашего бота
 BOT_TOKEN = '7748084790:AAEa0bomHqTJCpLD9cR1ez9K6vtsPxhsNoQ'

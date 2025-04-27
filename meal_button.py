@@ -73,7 +73,6 @@ async def back_to_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     # Возвращаемся в главное меню
     await start_func(update, context)
 
-
 async def save_meal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Сохраняет данные о приёме пищи в базу данных и возвращает пользователя в главное меню.
 
